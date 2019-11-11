@@ -35,6 +35,7 @@ void loop(){
 }
 
 void helloWorld(){
+  server.sendHeader("Access-Control-Allow-Origin", "*"); // pobawić się z headerami, zmienić response na jsonowy
   server.send(200,"text/plain", printTemperature());
 }
 
