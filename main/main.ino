@@ -2,13 +2,16 @@
 #include <ESP8266WebServer.h>
 #include "DHTesp.h"
 
+#define Fan 2 //D2
+
 ESP8266WebServer server(80);
 DHTesp dht;
 
 const char* ssid = "ssid";
-const char* password = "hasło";
+const char* password = "haslo";
 
 void setup(){
+  pinMode(Fan,OUTPUT);
   Serial.begin(115200);
   WiFi.begin(ssid, password);
 
@@ -21,7 +24,9 @@ void setup(){
   Serial.print(WiFi.localIP());
   Serial.println();
 
-  server.on("/",helloWorld);
+  server.on("/temperature",temperature);
+  server.on("/fanOn",fanOn);
+  server.on("/fanOff",fanOff);
   server.onNotFound(notFound);
 
   server.begin();
@@ -34,24 +39,58 @@ void loop(){
     server.handleClient();
 }
 
-void helloWorld(){
-  server.sendHeader("Access-Control-Allow-Origin", "*"); // pobawić się z headerami, zmienić response na jsonowy
-  server.send(200,"text/plain", printTemperature());
+
+//---------- zwraca temperature
+void temperature(){
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.send(200,"text/plain", returnTemperature());
+}
+
+//---------- włącza wiatrak
+void fanOn(){
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.send(200,"text/plain", toggleFan(1));
+}
+
+//---------- wyłącza wiatrak
+void fanOff(){
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.send(200,"text/plain", toggleFan(0));
 }
 
 void notFound(){
-  server.send(404, "text/plain", "Nie znaju");
+  server.send(404, "text/plain", "Błędny adres");
 }
 
-//use it later 
-String printTemperature(){
+String toggleFan(int argument){
+  int value;
+  
+  switch(argument){
+    case 1:
+      for(value = 0 ; value <= 255; value+=5)
+      {
+        analogWrite(Fan, value);
+        Serial.println(value);
+        delay(30);
+      }    
+      return "Wiatrak wlączony";
+    case 0:
+      for(value = 255 ; value >= 0; value-=5)
+      {
+        analogWrite(Fan, value);
+        Serial.println(value);
+        delay(30);
+      }
+      return "Wiatrak wyłączony";
+    default:
+      return "";
+  }
+}
+
+String returnTemperature(){
   delay(dht.getMinimumSamplingPeriod());
 
   float temperature = dht.getTemperature();
-
-  String message = "Temperatura wynosi: ";
-  message += temperature;
-  message += " stopni Celsjusza";
-
-  return message;
+  
+  return (String)temperature;
 }
