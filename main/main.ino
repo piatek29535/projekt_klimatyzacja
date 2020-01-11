@@ -2,13 +2,13 @@
 #include <ESP8266WebServer.h>
 #include "DHTesp.h"
 
-#define Fan 2 //D2
+#define Fan 0 //D2
 
 ESP8266WebServer server(80);
 DHTesp dht;
 
 const char* ssid = "ssid";
-const char* password = "haslo";
+const char* password = "password";
 
 void setup(){
   pinMode(Fan,OUTPUT);
@@ -67,23 +67,23 @@ String toggleFan(int argument){
   
   switch(argument){
     case 1:
-      for(value = 0 ; value <= 255; value+=5)
+      for(value = 0 ; value <= 900; value+=30)
       {
         analogWrite(Fan, value);
         Serial.println(value);
         delay(30);
       }    
-      return "Wiatrak wlączony";
+      return "Wiatrak wlaczony";
     case 0:
-      for(value = 255 ; value >= 0; value-=5)
+      for(value = 900 ; value >= 0; value-=30)
       {
         analogWrite(Fan, value);
         Serial.println(value);
         delay(30);
       }
-      return "Wiatrak wyłączony";
+      return "Wiatrak wylaczony";
     default:
-      return "";
+      return "Default nothing";
   }
 }
 
