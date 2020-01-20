@@ -9,6 +9,9 @@ DHTesp dht;
 
 const char* ssid = "ssid";
 const char* password = "password";
+int maxSpeed = 1000;
+int minSpeed = 500;
+bool isTurnedOn = false;
 
 void setup(){
   pinMode(Fan,OUTPUT);
@@ -27,6 +30,7 @@ void setup(){
   server.on("/temperature",temperature);
   server.on("/fanOn",fanOn);
   server.on("/fanOff",fanOff);
+  server.on("/speed",speed);
   server.onNotFound(notFound);
 
   server.begin();
@@ -58,8 +62,15 @@ void fanOff(){
   server.send(200,"text/plain", toggleFan(0));
 }
 
+//---------- reguluje prędkość wiatraczka
+void speed(){
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  
+  server.send(200,"text/plain", setSpeed(server.arg(0)));
+}
+
 void notFound(){
-  server.send(404, "text/plain", "Błędny adres");
+  server.send(404, "text/plain", "Bledny adres");
 }
 
 String toggleFan(int argument){
@@ -67,24 +78,47 @@ String toggleFan(int argument){
   
   switch(argument){
     case 1:
-      for(value = 0 ; value <= 900; value+=30)
+      for(value = 0 ; value <= maxSpeed; value+=50)
       {
         analogWrite(Fan, value);
-        Serial.println(value);
         delay(30);
       }    
+      isTurnedOn = true;
       return "Wiatrak wlaczony";
     case 0:
-      for(value = 900 ; value >= 0; value-=30)
+      for(value = maxSpeed ; value >= 0; value-=50)
       {
         analogWrite(Fan, value);
-        Serial.println(value);
         delay(30);
       }
+      isTurnedOn = false;
       return "Wiatrak wylaczony";
     default:
       return "Default nothing";
   }
+}
+
+String setSpeed(String argument){
+
+  String message = "";
+  
+  if(isTurnedOn){
+
+    int speed = (argument.toInt()*5)+minSpeed;
+    
+    if(argument == "0"){
+      toggleFan(0);
+      message = "Wiatrak wylaczony";
+    }else{
+      analogWrite(Fan,speed); 
+      message = "Predkosc wiatraka ustawiona na: "+(String)speed;
+    }
+
+  }else{
+    message = "Wlacz wiatrak zeby kontrolowac predkosc";
+  }
+  
+  return message;
 }
 
 String returnTemperature(){
