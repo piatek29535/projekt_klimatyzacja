@@ -2,13 +2,13 @@
 #include <ESP8266WebServer.h>
 #include "DHTesp.h"
 
-#define Fan 0 //D2
+#define Fan 0 //D3
 
 ESP8266WebServer server(80);
 DHTesp dht;
 
-const char* ssid = "ssid";
-const char* password = "password";
+const char* ssid = "esp8266";
+const char* password = "qwertyuiop";
 int maxSpeed = 1000;
 int minSpeed = 500;
 bool isTurnedOn = false;
